@@ -6,10 +6,17 @@
  ******************************************************************************/
 
 #include <cstdlib>
+#include <memory>
 #include <string>
+#include <algorithm>
+#include <iostream>
 
+#include <yarp/os/Value.h>
+#include <yarp/os/Bottle.h>
+#include <yarp/os/ResourceFinder.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/Matrix.h>
+#include <yarp/math/Math.h>
 #include <iCub/ctrl/math.h>
 #include <iCub/iKin/iKinFwd.h>
 
@@ -132,5 +139,37 @@ public:
 
 /******************************************************************************/
 int main(int argc, char* argv[]) {
+    yarp::os::ResourceFinder rf;
+    rf.configure(argc, argv);
+
+    if (rf.check("help")) {
+        std::cout << "- Options:" << std::endl;
+        std::cout << "--version [left|right]_x.y" << std::endl;
+        std::cout << "--joints \"(0.0 0.0 ... 0.0)\" - (deg)" << std::endl;
+        std::cout << "- Example:" << std::endl;
+        std::cout << "./fkin --version right_2.7 --joints \"(10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0)\"" << std::endl;
+        return EXIT_SUCCESS;
+    }
+    
+    auto version = rf.check("version", yarp::os::Value("left_2.0")).asString();
+    auto eye = std::make_unique<iCubEyeNew>(version);
+    eye->releaseLink(0);
+    eye->releaseLink(1);
+    eye->releaseLink(2);
+    eye->setAng(yarp::math::zeros(eye->getDOF()));
+
+    if (rf.check("joints")) {
+        if (const auto* joints = rf.find("joints").asList()) {
+            size_t len = std::min((size_t)eye->getDOF(), joints->size());
+            for (size_t i = 0; i < len; i++) {
+                eye->setAng(i, iCub::ctrl::CTRL_DEG2RAD * joints->get(i).asDouble());
+            }
+        }
+    }
+
+    std::cout << "- version" << std::endl << eye->getType() << std::endl;
+    std::cout << "- joints" << std::endl << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(3, 3) << std::endl;
+    std::cout << "- H" << std::endl << eye->getH().toString(3, 3) << std::endl;
+
     return EXIT_SUCCESS;
 }
