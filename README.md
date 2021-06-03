@@ -10,7 +10,7 @@ This repository is organized based upon the following multiple parallel (i.e. or
 
 ### 🔽 How to clone specific branches locally
 ```sh
-$ git clone https://github.com/icub-tech-iit/ergocub-design-head.git --single-branch --branch <branch-name>
+$ git clone https://github.com/icub-tech-iit/study-improve-head-edpr.git --single-branch --branch <branch-name>
 ```
 
 Be careful that some branches (e.g. `mech`...) are handled via [Git LFS](https://help.github.com/en/articles/installing-git-large-file-storage).
