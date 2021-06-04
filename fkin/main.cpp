@@ -15,6 +15,7 @@
 #include <yarp/os/Value.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/os/ResourceFinder.h>
+#include <yarp/os/Os.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/math/Math.h>
@@ -141,6 +142,7 @@ public:
 /******************************************************************************/
 int main(int argc, char* argv[]) {
     yarp::os::ResourceFinder rf;
+    rf.setDefaultContext("fkin");
     rf.configure(argc, argv);
 
     if (rf.check("help")) {
@@ -172,17 +174,25 @@ int main(int argc, char* argv[]) {
     std::cout << "- joints" << std::endl << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(5, 5) << std::endl;
     std::cout << "- H" << std::endl << eye->getH().toString(5, 5) << std::endl;
     
-    std::ofstream fout("frames.log");
+    yarp::os::mkdir_p(rf.getHomeContextPath().c_str());
+    std::string filename(rf.getHomeContextPath() + "/frames.csv");
+    std::ofstream fout(filename);
     if (fout.is_open()) {
-        std::cout << "Saving frames to file \"frames.log\"..." << std::endl;
+        std::cout << "Saving frames to file \"" << filename << "\"..." << std::endl;
         for (size_t i = 0; i < eye->getDOF(); i++) {
             auto H = eye->getH(i);
             for (size_t j = 0; j < H.rows(); j++) {
-                fout << H.getRow(j).toString(5, 5) << " ";
+                for (size_t k = 0; k < H.cols(); k++) {
+                    fout << H(j, k);
+                    if ((j < H.rows()-1) || (k < H.cols()-1)) {
+                        fout << ",";
+                    }
+                }
             }
             fout << std::endl;
         }
         std::cout << "...saved!" << std::endl;
+        fout.close();
     } else {
         std::cerr << "Problems detected while saving frames to file!" << std::endl;
         return EXIT_FAILURE;
