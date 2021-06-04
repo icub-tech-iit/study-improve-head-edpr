@@ -10,6 +10,7 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 #include <yarp/os/Value.h>
 #include <yarp/os/Bottle.h>
@@ -147,11 +148,11 @@ int main(int argc, char* argv[]) {
         std::cout << "--version [left|right]_x.y" << std::endl;
         std::cout << "--joints \"(0.0 0.0 ... 0.0)\" - (deg)" << std::endl;
         std::cout << "- Example:" << std::endl;
-        std::cout << "./fkin --version right_2.7 --joints \"(10.0 20.0 30.0 40.0 50.0 60.0 70.0 80.0)\"" << std::endl;
+        std::cout << "./fkin --version right_2.8 --joints \"(1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0)\"" << std::endl;
         return EXIT_SUCCESS;
     }
     
-    auto version = rf.check("version", yarp::os::Value("left_2.0")).asString();
+    auto version = rf.check("version", yarp::os::Value("right_2.8")).asString();
     auto eye = std::make_unique<iCubEyeNew>(version);
     eye->releaseLink(0);
     eye->releaseLink(1);
@@ -168,8 +169,24 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "- version" << std::endl << eye->getType() << std::endl;
-    std::cout << "- joints" << std::endl << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(3, 3) << std::endl;
-    std::cout << "- H" << std::endl << eye->getH().toString(3, 3) << std::endl;
-
+    std::cout << "- joints" << std::endl << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(5, 5) << std::endl;
+    std::cout << "- H" << std::endl << eye->getH().toString(5, 5) << std::endl;
+    
+    std::ofstream fout("frames.log");
+    if (fout.is_open()) {
+        std::cout << "Saving frames to file \"frames.log\"..." << std::endl;
+        for (size_t i = 0; i < eye->getDOF(); i++) {
+            auto H = eye->getH(i);
+            for (size_t j = 0; j < H.rows(); j++) {
+                fout << H.getRow(j).toString(5, 5) << " ";
+            }
+            fout << std::endl;
+        }
+        std::cout << "...saved!" << std::endl;
+    } else {
+        std::cerr << "Problems detected while saving frames to file!" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
     return EXIT_SUCCESS;
 }
