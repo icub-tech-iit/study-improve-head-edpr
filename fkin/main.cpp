@@ -103,22 +103,21 @@ int main(int argc, char* argv[]) {
     std::cout << "- H" << std::endl << eye->getH().toString(5, 5) << std::endl;
     
     yarp::os::mkdir_p(rf.getHomeContextPath().c_str());
-    std::string filename(rf.getHomeContextPath() + "/frames.csv");
+    std::string filename(rf.getHomeContextPath() + "/frames.obj");
     std::ofstream fout(filename);
     if (fout.is_open()) {
         std::cout << "Saving frames to file \"" << filename << "\"..." << std::endl;
-        for (size_t i = 0; i < eye->getDOF(); i++) {
-            auto H = eye->getH(i);
-            for (size_t j = 0; j < H.rows(); j++) {
-                for (size_t k = 0; k < H.cols(); k++) {
-                    fout << H(j, k);
-                    if ((j < H.rows()-1) || (k < H.cols()-1)) {
-                        fout << ",";
-                    }
-                }
-            }
-            fout << std::endl;
+        fout << "# Vertices" << std::endl;
+        for (size_t v = 0; v < eye->getDOF(); v++) {
+            auto p = eye->getH(v).getCol(3).subVector(0, 2);
+            fout << "v " << p.toString(5, 5) << std::endl;
         }
+        fout << "# Lines" << std::endl;
+        fout << "l ";
+        for (size_t v = 0; v < eye->getDOF(); v++) {
+            fout << v+1 << " ";
+        }
+        fout << std::endl;
         std::cout << "...saved!" << std::endl;
         fout.close();
     } else {
