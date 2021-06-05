@@ -5,6 +5,10 @@ ports:
 - port: 10000-20000
   onOpen: ignore
 tasks:
-- init: init-icubcontrib.sh
+- init: |
+    sudo apt update
+    sudo apt install npm
+    sudo npm install -g browser-sync
+    init-icubcontrib.sh
 - command: start-vnc-session.sh
 - command: gp await-port 6080 && gp preview $(gp url 6080)
