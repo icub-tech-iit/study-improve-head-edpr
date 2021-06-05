@@ -112,12 +112,22 @@ int main(int argc, char* argv[]) {
             auto p = eye->getH(v).getCol(3).subVector(0, 2);
             fout << "v " << p.toString(5, 5) << std::endl;
         }
+        auto Hee = eye->getH();
+        auto xee = Hee.getCol(0).subVector(0, 2);
+        auto yee = Hee.getCol(1).subVector(0, 2);
+        auto pee = Hee.getCol(3).subVector(0, 2);
+        auto l2 = .02;
+        fout << "v " << (pee + l2 * xee + l2 * yee).toString(5, 5) << std::endl;
+        fout << "v " << (pee + l2 * xee - l2 * yee).toString(5, 5) << std::endl;
+        fout << "v " << (pee - l2 * xee + l2 * yee).toString(5, 5) << std::endl;
+        fout << "v " << (pee - l2 * xee - l2 * yee).toString(5, 5) << std::endl;
         fout << "# Lines" << std::endl;
-        fout << "l ";
-        for (size_t v = 0; v < eye->getDOF(); v++) {
-            fout << v+1 << " ";
+        for (size_t v = 0; v < eye->getDOF()-1; v++) {
+            fout << "l " << v+1 << " " << v+2 << std::endl;
         }
-        fout << std::endl;
+        fout << "# Faces" << std::endl;
+        auto dof = eye->getDOF();
+        fout << "f " << dof+1 << " " << dof+2 << " " << dof+3 << " " << dof+4 << std::endl;
         std::cout << "...saved!" << std::endl;
         fout.close();
     } else {

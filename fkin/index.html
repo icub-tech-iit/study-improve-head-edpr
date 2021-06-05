@@ -19,7 +19,7 @@
 
             const scene = new THREE.Scene();
             scene.background = new THREE.Color( 0x404040 );
-            const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+            const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100 );
             const controls = new OrbitControls( camera, renderer.domElement );
 
             const loader = new OBJLoader();
@@ -40,7 +40,7 @@
                 }
             );
 
-            camera.position.set( 0, 0, 10 );
+            camera.position.set( 0, 0, 2 );
             controls.update();
 
             window.addEventListener( 'resize', onWindowResize, false );
