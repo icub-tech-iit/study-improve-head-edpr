@@ -24,4 +24,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE YARP::YARP_os YARP::YARP_sig YARP:
                                               ICUB::ctrlLib ICUB::iKin)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(PROGRAMS view.sh DESTINATION bin)
+install(FILES index.html DESTINATION ~/.local/share/yarp/contexts/${PROJECT_NAME})
 icubcontrib_add_uninstall_target()

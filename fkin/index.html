@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>3D Viewer</title>
+		<style>
+			body { margin: 0; }
+		</style>
+	</head>
+	<body>
+        <script type="module">
+            import * as THREE from 'https://cdn.skypack.dev/three';
+            import { OrbitControls } from 'https://cdn.skypack.dev/three/examples/jsm/controls/OrbitControls.js';
+
+            const renderer = new THREE.WebGLRenderer( { alpha: true, antialias: true } );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0x404040 );
+            scene.rotateX( -Math.PI / 2.0 );
+            const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100 );
+            const controls = new OrbitControls( camera, renderer.domElement );
+
+            var axesHelper = new THREE.AxesHelper( .5 );
+            scene.add( axesHelper );
+
+            camera.position.set( -1.5, 0, 0 );
+            camera.lookAt( 0, 0, 0 );
+            controls.update();            
+
+            const loader = new THREE.FileLoader();
+            loader.load(
+                './frames.csv',
+                function ( data ) {
+                    const frames = data.split('\n');
+                    // draw cylinders
+                    for (var i = 0; i < frames.length-1; i++) {
+                        const f1 = frames[i].split(',');
+                        const f2 = frames[i+1].split(',');
+                        const p1 = new THREE.Vector3( parseFloat( f1[3] ), parseFloat( f1[7] ), parseFloat( f1[11] ) );
+                        const p2 = new THREE.Vector3( parseFloat( f2[3] ), parseFloat( f2[7] ), parseFloat( f2[11] ) );
+                        const mesh = cylinder( p1, p2 );
+                        scene.add( mesh );
+                    }
+                    // draw end-effector frame
+                    const fee = frames[frames.length-1].split(',');
+                    const p1 = new THREE.Vector3( parseFloat( fee[3] ), parseFloat( fee[7] ), parseFloat( fee[11] ) );
+                    const colors = [ 0xff0000, 0x00ff00, 0x0000ff ];
+                    for (var i = 0; i < 3; i++) {
+                        const points = [];
+                        var p2 = new THREE.Vector3( parseFloat( fee[i] ), parseFloat( fee[i+4] ), parseFloat( fee[i+8] ) );
+                        points.push( p1 );
+                        points.push( new THREE.Vector3().addVectors( p1, p2.multiplyScalar( 0.05 ) ) );
+                        const material = new THREE.LineBasicMaterial( { color: colors[i] } );
+                        const geometry = new THREE.BufferGeometry().setFromPoints( points );
+                        const line = new THREE.Line( geometry, material );
+                        scene.add( line );
+                    }
+                    renderer.render( scene, camera );
+                },
+	            function ( xhr ) {
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                function ( error ) {
+                    console.log( error );
+                }
+            );
+
+            function cylinder( pointX, pointY ) {
+                var direction = new THREE.Vector3().subVectors( pointY, pointX );
+                var orientation = new THREE.Matrix4();
+                orientation.lookAt( pointX, pointY, new THREE.Object3D().up );
+                const R = new THREE.Matrix4();
+                R.set( 1,  0, 0, 0,
+                       0,  0, 1, 0, 
+                       0, -1, 0, 0,
+                       0,  0, 0, 1 );
+                orientation.multiply( R );
+
+                const radius = 0.005;
+                var geometry = new THREE.CylinderGeometry( radius, radius, direction.length(), 32);
+                const material = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 0.5, transparent: true } );
+                var mesh = new THREE.Mesh( geometry, material );
+
+                mesh.applyMatrix4( orientation );
+                const position = new THREE.Vector3().addVectors( pointX, direction.multiplyScalar( 0.5 ) );
+                mesh.position.set ( position.x, position.y, position.z );
+                return mesh;
+            }
+
+            window.addEventListener( 'resize', onWindowResize, false );
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            }
+
+            function animate() {
+                requestAnimationFrame( animate );
+                controls.update();
+                renderer.render( scene, camera );
+            }
+            animate();
+        </script>
+	</body>
+</html>

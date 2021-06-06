@@ -117,7 +117,9 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
-            fout << std::endl;
+            if (i < eye->getDOF()-1) {
+                fout << std::endl;
+            }
         }
         std::cout << "...saved!" << std::endl;
         fout.close();
@@ -125,6 +127,6 @@ int main(int argc, char* argv[]) {
         std::cerr << "Problems detected while saving frames to file!" << std::endl;
         return EXIT_FAILURE;
     }
-    
+
     return EXIT_SUCCESS;
 }
