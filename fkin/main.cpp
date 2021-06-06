@@ -79,6 +79,7 @@ int main(int argc, char* argv[]) {
     if (rf.check("help")) {
         std::cout << "- Options:" << std::endl;
         std::cout << "--type [left|right]" << std::endl;
+        std::cout << "--d distance" << std::endl;
         std::cout << "--joints \"(0.0 0.0 ... 0.0)\" - (deg)" << std::endl;
         std::cout << "- Example:" << std::endl;
         std::cout << "./fkin --type right --joints \"(1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0)\"" << std::endl;
@@ -86,8 +87,13 @@ int main(int argc, char* argv[]) {
     }
     
     auto type = rf.check("type", yarp::os::Value("right")).asString();
+    auto d = rf.check("d", yarp::os::Value(0.)).asDouble();
     auto eye = std::make_unique<iCubEyeNew>(type);
     eye->setAng(yarp::math::zeros(eye->getDOF()));
+
+    yarp::sig::Matrix HN = yarp::math::eye(4, 4);
+    HN(2, 3) = -d;
+    eye->setHN(HN);
 
     if (rf.check("joints")) {
         if (const auto* joints = rf.find("joints").asList()) {
@@ -98,8 +104,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "- type" << std::endl << eye->getType() << std::endl;
-    std::cout << "- joints" << std::endl << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(5, 5) << std::endl;
+    std::cout << "- type: " << eye->getType() << std::endl;
+    std::cout << "- d: " << d << std::endl;
+    std::cout << "- joints: " << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(5, 5) << std::endl;
     std::cout << "- H" << std::endl << eye->getH().toString(5, 5) << std::endl;
     
     yarp::os::mkdir_p(rf.getHomeContextPath().c_str());
