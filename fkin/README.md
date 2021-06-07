@@ -25,7 +25,8 @@ You are now good to go for experimenting with the kinematics ✨
 
 ### 🔘 Run the project
 In the terminal, ask for a given configuration as below by providing the
-type of eye, the distance `d`, and the 8 joint angles expressed in degrees:
+type of eye, the distance `d` expressed in meters, and the 8 joint angles
+expressed in degrees:
 ```console
 fkin --type left --d 0.0 --joints "(1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0)"
 ``` 
