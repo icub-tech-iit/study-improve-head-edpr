@@ -104,10 +104,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "- type: " << eye->getType() << std::endl;
-    std::cout << "- d: " << d << std::endl;
-    std::cout << "- joints: " << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(5, 5) << std::endl;
-    std::cout << "- H:" << std::endl << eye->getH().toString(5, 5) << std::endl;
+    std::cout << "-- type: " << eye->getType() << std::endl;
+    std::cout << "-- d: " << d << std::endl;
+    std::cout << "-- joints: " << (iCub::ctrl::CTRL_RAD2DEG * eye->getAng()).toString(5, 5) << std::endl;
+    std::cout << "-- H:" << std::endl << eye->getH().toString(5, 5) << std::endl;
     
     yarp::os::mkdir_p(rf.getHomeContextPath().c_str());
     std::string filename(rf.getHomeContextPath() + "/frames.csv");
