@@ -51,6 +51,7 @@ view.sh
 <div align="center">
     <figure>
         <img height="400" src="./assets/viewer.png"/>
+      
         <figcaption>The output of the 3D Viewer.</figcaption>
     </figure>
 </div>
