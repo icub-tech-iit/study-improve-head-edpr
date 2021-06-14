@@ -42,6 +42,7 @@ struct DataExperiment {
     double curr;
     double motor_enc;
     double pwm_read;
+    double pwm_set;
     double torque;
 };
 
@@ -65,6 +66,8 @@ int main(int argc, char * argv[])
     auto log_file = rf.check("log-file", Value("output.log")).asString();
     auto time_delay = rf.check("time-delay", Value(.01)).asDouble();
     auto control_mode = rf.check("control-mode", Value("position")).asString();
+    auto pwm_value = rf.check("pwm-value", Value(80.)).asDouble();
+    auto pause = rf.check("pause", Value(100.)).asDouble();
 
     PolyDriver m_driver;
     IPositionControl* iPos{ nullptr };
@@ -127,7 +130,7 @@ int main(int argc, char * argv[])
     // }
     bool toggle = false;
 
-
+    
     for(int i=0; i<(cycles*2); i++) {
         
 
@@ -135,16 +138,22 @@ int main(int argc, char * argv[])
         else set_point = set_point2;
         toggle = !toggle;
         DataExperiment data;
+        
         iEnc->getEncoder(joint_id, &data.enc);
         iCurr->getCurrent(joint_id, &data.curr);
         iMotorEnc->getMotorEncoder(joint_id, &data.motor_enc);
         auto vel = std::fabs(set_point - data.enc) / T;
-        iPos->setRefSpeed(joint_id, 5);
-        iPos->positionMove(joint_id, set_point);
+        
         iPwm->getDutyCycle(joint_id, &data.pwm_read);
         iTrq->getTorque(joint_id, &data.torque);
 
-
+        if(control_mode == "position"){
+            iPos->setRefSpeed(joint_id, vel);
+            iPos->positionMove(joint_id, set_point);
+        }
+        else if (control_mode == "pwm"){
+            iPwm->setRefDutyCycle(joint_id, pwm_value);
+        }
         
         //auto t0 = Time::now();
         auto t1{t0};
@@ -178,12 +187,18 @@ int main(int argc, char * argv[])
             // port.writeStrict();
 
             if (Time::now() - t1 >= .1) {
-                iPos->checkMotionDone(joint_id, &done);
+                if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
+                else if(control_mode == "pwm"){
+                    if(set_point > 0) if(data.enc > set_point) {done = true; pwm_value = pwm_value * -1;}
+                    else if(data.enc < set_point) {done = true; pwm_value = pwm_value * -1;}
+                } 
                 t1 = Time::now();
             }
             Time::delay(time_delay);
    
         }
+        Time::delay(pause);
+        
   
     }
 
