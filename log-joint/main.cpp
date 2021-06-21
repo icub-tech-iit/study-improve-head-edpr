@@ -67,7 +67,10 @@ int main(int argc, char * argv[])
     auto time_delay = rf.check("time-delay", Value(.01)).asDouble();
     auto control_mode = rf.check("control-mode", Value("position")).asString();
     auto pwm_value = rf.check("pwm-value", Value(80.)).asDouble();
-    auto pause = rf.check("pause", Value(100.)).asDouble();
+    auto pause = rf.check("pause", Value(.5)).asDouble();
+    auto velocity = rf.check("velocity", Value(50)).asDouble();
+
+
 
     PolyDriver m_driver;
     IPositionControl* iPos{ nullptr };
@@ -116,18 +119,20 @@ int main(int argc, char * argv[])
         yError() << "Failed to view interfaces";
         return EXIT_FAILURE;
     }
-    iCm->setControlMode(joint_id, VOCAB_CM_POSITION);
+    
 
     auto t0 = Time::now();
+    iCm->setControlMode(joint_id, VOCAB_CM_POSITION);
+
     // Homing
-    // iPos->setRefSpeed(joint_id, 25.);
-    // iPos->setRefAcceleration(joint_id, std::numeric_limits<double>::max());
-    // iPos->positionMove(joint_id, 0.);
+     iPos->setRefSpeed(joint_id, 25.);
+     iPos->setRefAcceleration(joint_id, std::numeric_limits<double>::max());
+     iPos->positionMove(joint_id, 0.);
      auto done{ false };
-    // while (!done) {
-    //     iPos->checkMotionDone(joint_id, &done);
-    //     Time::yield();
-    // }
+     while (!done) {
+        iPos->checkMotionDone(joint_id, &done);
+        Time::yield();
+     }
     bool toggle = false;
 
     
@@ -148,10 +153,14 @@ int main(int argc, char * argv[])
         iTrq->getTorque(joint_id, &data.torque);
 
         if(control_mode == "position"){
-            iPos->setRefSpeed(joint_id, vel);
+            iCm->setControlMode(joint_id, VOCAB_CM_POSITION);
+            iPos->setRefSpeed(joint_id, velocity);
             iPos->positionMove(joint_id, set_point);
         }
         else if (control_mode == "pwm"){
+            //if (set_point > 0) pwm_value = pwm_value * -1;
+            //yDebug() << set_point << " " << pwm_value;
+            iCm->setControlMode(joint_id, VOCAB_CM_PWM);
             iPwm->setRefDutyCycle(joint_id, pwm_value);
         }
         
@@ -186,11 +195,25 @@ int main(int argc, char * argv[])
 
             // port.writeStrict();
 
-            if (Time::now() - t1 >= .1) {
+            if (Time::now() - t1 >= .001) {
                 if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
                 else if(control_mode == "pwm"){
-                    if(set_point > 0) if(data.enc > set_point) {done = true; pwm_value = pwm_value * -1;}
-                    else if(data.enc < set_point) {done = true; pwm_value = pwm_value * -1;}
+                    if(set_point > 0){
+                        if(data.enc > set_point){
+                            yDebug() << data.enc << " " << set_point << " " << pwm_value; 
+                            iPwm->setRefDutyCycle(joint_id, 0);
+                            pwm_value = pwm_value * -1;
+                            //Time::delay(pause);
+                            done = true; 
+                            }
+                    } 
+                    else if(data.enc < set_point){
+                        yDebug() << data.enc << " " << set_point << " " << pwm_value; 
+                        iPwm->setRefDutyCycle(joint_id, 0); 
+                        pwm_value = pwm_value * -1;
+                        //Time::delay(pause);
+                        done = true; 
+                        }
                 } 
                 t1 = Time::now();
             }
@@ -212,13 +235,14 @@ int main(int argc, char * argv[])
     }
 
     // Homing
-    // iPos->setRefSpeed(joint_id, 25.);
-    // iPos->setRefAcceleration(joint_id, std::numeric_limits<double>::max());
-    // iPos->positionMove(joint_id, 0.);
-    // while (!done) {
-    //     iPos->checkMotionDone(joint_id, &done);
-    //     Time::yield();
-    // }
+     iCm->setControlMode(joint_id, VOCAB_CM_POSITION);
+     iPos->setRefSpeed(joint_id, 25.);
+     iPos->setRefAcceleration(joint_id, std::numeric_limits<double>::max());
+     iPos->positionMove(joint_id, 0.);
+     while (!done) {
+         iPos->checkMotionDone(joint_id, &done);
+         Time::yield();
+     }
     
     m_driver.close();
     file.close();
