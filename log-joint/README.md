@@ -1,5 +1,5 @@
 # Log joint data
-The snippet code allow to move a joint between two set points both in position and pwm control mode and logs following joint data:
+The snippet code allows moving a joint between two set points both in position and PWM control mode and logs the following joint data:
 
 - Pid reference
 - Pid output
