@@ -67,8 +67,8 @@ int main(int argc, char * argv[])
     auto time_delay = rf.check("time-delay", Value(.01)).asDouble();
     auto control_mode = rf.check("control-mode", Value("position")).asString();
     auto pwm_value = rf.check("pwm-value", Value(80.)).asDouble();
-    auto pause = rf.check("pause", Value(.5)).asDouble();
-    auto velocity = rf.check("velocity", Value(50)).asDouble();
+    auto pause = rf.check("pause", Value(1.)).asDouble();
+    auto velocity = rf.check("velocity", Value(1)).asDouble();
 
 
 
@@ -148,7 +148,8 @@ int main(int argc, char * argv[])
         iCurr->getCurrent(joint_id, &data.curr);
         iMotorEnc->getMotorEncoder(joint_id, &data.motor_enc);
         auto vel = std::fabs(set_point - data.enc) / T;
-        
+        if(velocity == 1) velocity = vel;
+
         iPwm->getDutyCycle(joint_id, &data.pwm_read);
         iTrq->getTorque(joint_id, &data.torque);
 
@@ -159,9 +160,24 @@ int main(int argc, char * argv[])
         }
         else if (control_mode == "pwm"){
             //if (set_point > 0) pwm_value = pwm_value * -1;
-            //yDebug() << set_point << " " << pwm_value;
+            
             iCm->setControlMode(joint_id, VOCAB_CM_PWM);
             iPwm->setRefDutyCycle(joint_id, pwm_value);
+            //check movement direction
+            double enc1;
+            iEnc->getEncoder(joint_id, &enc1);
+            Time::delay(.02);
+            double enc2;
+            iEnc->getEncoder(joint_id, &enc2);
+            if(set_point > 0 && enc1 > enc2 && i == 0){
+                pwm_value = pwm_value * -1;
+                iPwm->setRefDutyCycle(joint_id, pwm_value);
+            }
+            if(set_point < 0 && enc2 < enc1 && i == 0){
+                pwm_value = pwm_value * -1;
+                iPwm->setRefDutyCycle(joint_id, pwm_value);
+            }                          
+            yDebug() << set_point << " " << enc1 << " " << enc2 << " " << pwm_value;
         }
         
         //auto t0 = Time::now();
@@ -217,7 +233,7 @@ int main(int argc, char * argv[])
                 } 
                 t1 = Time::now();
             }
-            Time::delay(time_delay);
+           // Time::delay(time_delay);
    
         }
         Time::delay(pause);
