@@ -22,7 +22,7 @@ ccmake ..
 ```
 
 ## Usage
-Is possible to run the code to control the joint both in `position` and `pwm` control mode by passing to it proper parameters via CLI.
+It is possible to run the code to control the joint both in `position` and `PWM` control mode by passing to it proper parameters via CLI.
 The parameters available are :
 
 ### Position
