@@ -1,4 +1,4 @@
-A = importdata("build/test-20k-1k-left-leg.log")
+A = importdata("build/output.log")
 % Create data and 2-by-1 tiled chart layout
 x = A(:,1);
 y1 = A(:,3);
@@ -13,7 +13,7 @@ tiledlayout(6,1)
 
 % Top plot
 ax1 = nexttile;
-plot(ax1,x,y1)
+stairs(ax1,x,y1)
 grid on
 title(ax1,'PID OUT')
 xlabel(ax1, 'time (sec)')
@@ -21,7 +21,8 @@ ylabel(ax1,'PID out')
 
 % Bottom plot
 ax2 = nexttile;
-plot(ax2,x,y2,x,y3)
+Y = [y2, y3];
+stairs(ax2,x,Y)
 grid on
 legend('pid ref','encoder')
 title(ax2,'PID REF / ENCODER')
@@ -30,7 +31,7 @@ ylabel(ax2,'degrees')
 
 % Bottom plot
 ax3 = nexttile;
-plot(ax3,x,y4)
+stairs(ax3,x,y4)
 grid on
 legend('motor current')
 title(ax3,'motor current')
@@ -39,7 +40,7 @@ ylabel(ax3,'Ampere')
 
 % Bottom plot
 ax4 = nexttile;
-plot(ax4,x,y5)
+stairs(ax4,x,y5)
 grid on
 legend('motor encoder')
 title(ax4,'motor encoder')
@@ -48,7 +49,7 @@ ylabel(ax4,'degrees x 100')
 
 % Bottom plot
 ax5 = nexttile;
-plot(ax5,x,y6)
+stairs(ax5,x,y6)
 grid on
 legend('PWM')
 title(ax5,'PWM')
@@ -56,10 +57,10 @@ xlabel(ax5, 'time (sec)')
 ylabel(ax5,'PWM %')
 
 % Bottom plot
-ax6 = nexttile;
-plot(ax6,x,y7)
-grid on
-legend('Torque')
-title(ax6,'Torque')
-xlabel(ax6, 'time (sec)')
-ylabel(ax6,'Torque')
+%ax6 = nexttile;
+%plot(ax6,x,y7)
+%grid on
+%legend('Torque')
+%title(ax6,'Torque')
+%xlabel(ax6, 'time (sec)')
+%ylabel(ax6,'Torque')

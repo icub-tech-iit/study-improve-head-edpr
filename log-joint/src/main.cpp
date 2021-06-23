@@ -57,9 +57,9 @@ int main(int argc, char * argv[])
     ResourceFinder rf;
     rf.configure(argc, argv);
 
-    auto joint_id = rf.check("joint-id", Value(3)).asInt();
-    auto set_point1 = rf.check("set-point1", Value(-15.)).asDouble();
-    auto set_point2 = rf.check("set-point2", Value(-25.)).asDouble();
+    auto joint_id = rf.check("joint-id", Value(-1)).asInt();
+    auto set_point1 = rf.check("set-point1", Value(0.)).asDouble();
+    auto set_point2 = rf.check("set-point2", Value(0.)).asDouble();
     auto cycles = rf.check("cycles", Value(1)).asInt();
     auto T = rf.check("T", Value(2.)).asDouble();
     auto robot_part = rf.check("robot-part", Value("")).asString();
