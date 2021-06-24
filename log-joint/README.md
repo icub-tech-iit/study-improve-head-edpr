@@ -16,9 +16,8 @@ In order to compile the [code](src/main.cpp) do :
 
 ```console
 cd src
-mkdir build
-cd build
-ccmake ..
+cmake -S . -B build
+cmake --build build
 ```
 
 ## Usage
