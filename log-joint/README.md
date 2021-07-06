@@ -49,22 +49,22 @@ Modify the script w/ the proper log file name and run it.
 
 ## Position
 ### tilt
-![image](https://user-images.githubusercontent.com/6638215/123105865-6f919100-d438-11eb-85a3-c2a5b39829d9.png)
+![image](assets/pos-tilt.png)
 ### pan
-![image](https://user-images.githubusercontent.com/6638215/123105946-80da9d80-d438-11eb-94f9-6a2dc1645dbf.png)
+![image](assets/pos-pan.png)
 
 ## Pwm 70%
 ### tilt
-![image](https://user-images.githubusercontent.com/6638215/123106046-98198b00-d438-11eb-8136-a323f918aa44.png)
+![image](assets/pwm-tilt.png)
 ### pan
-![image](https://user-images.githubusercontent.com/6638215/123106127-ab2c5b00-d438-11eb-8ca4-64e4fbc2edbc.png)
+![image](assets/pwm-pan.png)
 
 ## Logs
-[j3-pos.log](https://github.com/icub-tech-iit/fix/files/6702169/j3-pos.log)
+[j3-pos.log](assets/j3-pos.log)
 
-[j3-pwm70.log](https://github.com/icub-tech-iit/fix/files/6702170/j3-pwm70.log)
+[j3-pwm70.log](assets/j3-pwm70.log)
 
-[j4-pos.log](https://github.com/icub-tech-iit/fix/files/6702171/j4-pos.log)
+[j4-pos.log](assets/j4-pos.log)
 
-[j4-pwm70.log](https://github.com/icub-tech-iit/fix/files/6702172/j4-pwm70.log)
+[j4-pwm70.log](assets/j4-pwm70.log)
 
