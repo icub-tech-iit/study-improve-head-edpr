@@ -1,4 +1,6 @@
-A = importdata("build/output.log")
+function plot_results(filename)
+
+A = importdata(filename);
 % Create data and 2-by-1 tiled chart layout
 x = A(:,1);
 y1 = A(:,3);
@@ -7,7 +9,6 @@ y3 = A(:,4);
 y4 = A(:,5);
 y5 = A(:,6);
 y6 = A(:,7);
-y7 = A(:,8);
 
 tiledlayout(6,1)
 
@@ -55,12 +56,3 @@ legend('PWM')
 title(ax5,'PWM')
 xlabel(ax5, 'time (sec)')
 ylabel(ax5,'PWM %')
-
-% Bottom plot
-%ax6 = nexttile;
-%plot(ax6,x,y7)
-%grid on
-%legend('Torque')
-%title(ax6,'Torque')
-%xlabel(ax6, 'time (sec)')
-%ylabel(ax6,'Torque')

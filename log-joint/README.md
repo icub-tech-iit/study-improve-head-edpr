@@ -43,7 +43,10 @@ cd src/build
 ```
 
 ## Matlab script
-Modify the script w/ the proper log file name and run it.
+Run the script by doing:
+```matlab
+plot_results('log_filename');
+```
 
 ### Example of acquisitions plots and logs
 
