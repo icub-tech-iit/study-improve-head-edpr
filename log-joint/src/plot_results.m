@@ -56,3 +56,6 @@ legend('PWM')
 title(ax5,'PWM')
 xlabel(ax5, 'time (sec)')
 ylabel(ax5,'PWM %')
+
+% Bundle the axes for zoom
+linkaxes([ax1 ax2 ax3 ax4 ax5], 'x');
