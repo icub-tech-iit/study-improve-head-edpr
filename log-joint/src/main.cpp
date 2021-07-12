@@ -19,6 +19,7 @@
 #include <yarp/os/Value.h>
 #include <yarp/os/Bottle.h>
 #include <yarp/dev/PolyDriver.h>
+#include <yarp/dev/IControlLimits.h>
 #include <yarp/dev/IPositionControl.h>
 #include <yarp/dev/IPidControl.h>
 #include <yarp/dev/IControlMode.h>
@@ -73,6 +74,7 @@ int main(int argc, char * argv[])
 
 
     PolyDriver m_driver;
+    IControlLimits* iLim{ nullptr };
     IPositionControl* iPos{ nullptr };
     IPidControl* iPid{ nullptr };
     IControlMode* iCm{ nullptr };
@@ -114,9 +116,28 @@ int main(int argc, char * argv[])
     if (!(m_driver.view(iPos) && m_driver.view(iPid) &&
           m_driver.view(iCm) && m_driver.view(iEnc) && 
           m_driver.view(iCurr) && m_driver.view(iMotorEnc) &&
-          m_driver.view(iPwm) && m_driver.view(iTrq))) {
+          m_driver.view(iPwm) && m_driver.view(iTrq)) &&
+          m_driver.view(iLim)) {
         m_driver.close();
         yError() << "Failed to view interfaces";
+        return EXIT_FAILURE;
+    }
+
+    int nAxes;
+    iEnc->getAxes(&nAxes);
+    if ((joint_id < 0) || (joint_id >= nAxes)) {
+        m_driver.close();
+        yError() << "joint_id is not within the correct range";
+        return EXIT_FAILURE;
+    }
+
+    double joint_min, joint_max;
+    iLim->getLimits(joint_id, &joint_min, &joint_max);
+    if ((set_point1 < joint_min) || (set_point1 > joint_max) ||
+        (set_point2 < joint_min) || (set_point2 > joint_max) ||
+        (set_point1 > set_point2)) {
+        m_driver.close();
+        yError() << "set_point1 and/or set_point2 are not correct";
         return EXIT_FAILURE;
     }
     
