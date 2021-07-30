@@ -10,7 +10,8 @@ y4 = A(:,5);
 y5 = A(:,6);
 y6 = A(:,7);
 
-tiledlayout(5,1)
+figure('color', 'white');
+tiledlayout(5,1);
 
 % Top plot
 ax1 = nexttile;
