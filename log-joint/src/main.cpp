@@ -123,23 +123,23 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    int nAxes;
-    iEnc->getAxes(&nAxes);
-    if ((joint_id < 0) || (joint_id >= nAxes)) {
-        m_driver.close();
-        yError() << "joint_id is not within the correct range";
-        return EXIT_FAILURE;
-    }
+    // int nAxes;
+    // iEnc->getAxes(&nAxes);
+    // if ((joint_id < 0) || (joint_id >= nAxes)) {
+    //     m_driver.close();
+    //     yError() << "joint_id is not within the correct range";
+    //     return EXIT_FAILURE;
+    // }
 
-    double joint_min, joint_max;
-    iLim->getLimits(joint_id, &joint_min, &joint_max);
-    if ((set_point1 < joint_min) || (set_point1 > joint_max) ||
-        (set_point2 < joint_min) || (set_point2 > joint_max) ||
-        (set_point1 > set_point2)) {
-        m_driver.close();
-        yError() << "set_point1 and/or set_point2 are not correct";
-        return EXIT_FAILURE;
-    }
+    // double joint_min, joint_max;
+    // iLim->getLimits(joint_id, &joint_min, &joint_max);
+    // if ((set_point1 < joint_min) || (set_point1 > joint_max) ||
+    //     (set_point2 < joint_min) || (set_point2 > joint_max) ||
+    //     (set_point1 > set_point2)) {
+    //     m_driver.close();
+    //     yError() << "set_point1 and/or set_point2 are not correct";
+    //     return EXIT_FAILURE;
+    // }
     
 
     auto t0 = Time::now();
@@ -174,31 +174,42 @@ int main(int argc, char * argv[])
         iPwm->getDutyCycle(joint_id, &data.pwm_read);
         iTrq->getTorque(joint_id, &data.torque);
 
-        if(control_mode == "position"){
+        if(control_mode == "position" ){
             iCm->setControlMode(joint_id, VOCAB_CM_POSITION);
             iPos->setRefSpeed(joint_id, velocity);
             iPos->positionMove(joint_id, set_point);
         }
-        else if (control_mode == "pwm"){
+        else if (control_mode == "pwm" ){
             //if (set_point > 0) pwm_value = pwm_value * -1;
             
+            // iCm->setControlMode(joint_id, VOCAB_CM_PWM);
+            // iPwm->setRefDutyCycle(joint_id, pwm_value);
+            // //check movement direction
+            // double enc1;
+            // iEnc->getEncoder(joint_id, &enc1);
+            // Time::delay(.02);
+            // double enc2;
+            // iEnc->getEncoder(joint_id, &enc2);
+            // if(set_point > 0 && enc1 > enc2 && i == 0){
+            //     pwm_value = pwm_value * -1;
+            //     iPwm->setRefDutyCycle(joint_id, pwm_value);
+            // }
+            // if(set_point < 0 && enc2 < enc1 && i == 0){
+            //     pwm_value = pwm_value * -1;
+            //     iPwm->setRefDutyCycle(joint_id, pwm_value);
+            // }                          
+
+            Pid pidInfo;
+            iPid->getPid(VOCAB_PIDTYPE_POSITION,joint_id,&pidInfo);
+            auto pid_sign=(pidInfo.kp>=0.0?1.0:-1.0);
+
+            if((pid_sign < 0 && set_point > 0) && i == 0) pwm_value = pwm_value * -1;
+            if((pid_sign > 0 && set_point < 0) && i == 0) pwm_value = pwm_value * -1;
+
             iCm->setControlMode(joint_id, VOCAB_CM_PWM);
             iPwm->setRefDutyCycle(joint_id, pwm_value);
-            //check movement direction
-            double enc1;
-            iEnc->getEncoder(joint_id, &enc1);
-            Time::delay(.02);
-            double enc2;
-            iEnc->getEncoder(joint_id, &enc2);
-            if(set_point > 0 && enc1 > enc2 && i == 0){
-                pwm_value = pwm_value * -1;
-                iPwm->setRefDutyCycle(joint_id, pwm_value);
-            }
-            if(set_point < 0 && enc2 < enc1 && i == 0){
-                pwm_value = pwm_value * -1;
-                iPwm->setRefDutyCycle(joint_id, pwm_value);
-            }                          
-            yDebug() << set_point << " " << enc1 << " " << enc2 << " " << pwm_value;
+
+            yDebug() << pid_sign << " " << pwm_value;
         }
         
         //auto t0 = Time::now();
@@ -209,7 +220,6 @@ int main(int argc, char * argv[])
 
         while (!done) {
             data.t = Time::now() - t0;
-            
             iPid->getPidReference(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_ref);
             iPid->getPidOutput(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_out);
             iEnc->getEncoder(joint_id, &data.enc);
@@ -232,12 +242,15 @@ int main(int argc, char * argv[])
 
             // port.writeStrict();
 
-            if (Time::now() - t1 >= .001) {
+            if (Time::now() - t1 >= time_delay) {
+                
                 if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
                 else if(control_mode == "pwm"){
+
                     if(set_point > 0){
+
                         if(data.enc > set_point){
-                            yDebug() << data.enc << " " << set_point << " " << pwm_value; 
+                            //yDebug() << data.enc << " " << set_point << " " << pwm_value; 
                             iPwm->setRefDutyCycle(joint_id, 0);
                             pwm_value = pwm_value * -1;
                             //Time::delay(pause);
@@ -245,7 +258,7 @@ int main(int argc, char * argv[])
                             }
                     } 
                     else if(data.enc < set_point){
-                        yDebug() << data.enc << " " << set_point << " " << pwm_value; 
+                        //yDebug() << "OK" << " " << data.enc << " " << set_point << " " << pwm_value; 
                         iPwm->setRefDutyCycle(joint_id, 0); 
                         pwm_value = pwm_value * -1;
                         //Time::delay(pause);
@@ -254,11 +267,25 @@ int main(int argc, char * argv[])
                 } 
                 t1 = Time::now();
             }
-           // Time::delay(time_delay);
-   
+            Time::delay(time_delay);
+            
         }
-        Time::delay(pause);
-        
+        yDebug() << "OK! reached :" << " " << data.enc << " set-point : " << set_point;
+        for(int k=0; k < pause * (1/time_delay); k++){
+            data.t = Time::now() - t0;
+            iPid->getPidReference(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_ref);
+            iPid->getPidOutput(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_out);
+            iEnc->getEncoder(joint_id, &data.enc);
+            iCurr->getCurrent(joint_id, &data.curr);
+            iMotorEnc->getMotorEncoder(joint_id, &data.motor_enc);
+            iPwm->getDutyCycle(joint_id, &data.pwm_read);
+            iTrq->getTorque(joint_id, &data.torque);
+
+
+            data_vec.push_back(std::move(data));
+            Time::delay(time_delay);
+
+        }
   
     }
 
