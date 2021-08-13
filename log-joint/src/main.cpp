@@ -69,7 +69,8 @@ int main(int argc, char * argv[])
     auto control_mode = rf.check("control-mode", Value("position")).asString();
     auto pwm_value = rf.check("pwm-value", Value(80.)).asDouble();
     auto pause = rf.check("pause", Value(1.)).asDouble();
-    auto velocity = rf.check("velocity", Value(1)).asDouble();
+    auto velocity = rf.check("velocity", Value(1)).asInt();
+    auto timeout = rf.check("timeout", Value(5.)).asDouble();
 
 
 
@@ -183,16 +184,19 @@ int main(int argc, char * argv[])
             iCm->setControlMode(joint_id, VOCAB_CM_PWM);
             iPwm->setRefDutyCycle(joint_id, pwm_value);
 
-            yDebug() << pid_sign << " " << pwm_value;
         }
         
         auto t1{t0};
         done = false;
         double pid_ref, enc;
-       
+        double timeout_check = 0;
+        auto t2 = Time::now();
 
-        while (!done) {
+        while (!done && timeout_check < timeout) {
             data.t = Time::now() - t0;
+            timeout_check = Time::now() - t2;
+            
+
             iPid->getPidReference(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_ref);
             iPid->getPidOutput(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_out);
             iEnc->getEncoder(joint_id, &data.enc);
@@ -204,6 +208,8 @@ int main(int argc, char * argv[])
 
             data_vec.push_back(std::move(data));
 
+            yDebug() << data.enc << " " << data.t << " " << timeout_check << " " << timeout;
+
             if (Time::now() - t1 >= time_delay) {
                 
                 if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
@@ -212,13 +218,11 @@ int main(int argc, char * argv[])
                     if(set_point > 0){
 
                         if(data.enc > set_point){
-                            //iPwm->setRefDutyCycle(joint_id, 0);
                             pwm_value = pwm_value * -1;
                             done = true; 
                             }
                     } 
                     else if(data.enc < set_point){
-                        //iPwm->setRefDutyCycle(joint_id, 0); 
                         pwm_value = pwm_value * -1;
                         done = true; 
                         }
@@ -228,7 +232,8 @@ int main(int argc, char * argv[])
             Time::delay(time_delay);
             
         }
-        yDebug() << "OK! reached : " << set_point;
+        if(timeout_check >= timeout) yDebug() << "timeout while reaching : " << set_point;
+        else yDebug() << "OK! reached : " << set_point;
         if(control_mode == "position"){
             for(int k=0; k < pause * (1/time_delay); k++){
             data.t = Time::now() - t0;
