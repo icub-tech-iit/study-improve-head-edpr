@@ -84,13 +84,6 @@ int main(int argc, char * argv[])
     IPWMControl* iPwm{ nullptr };
     ITorqueControl* iTrq{nullptr};
 
-    //for yarpscope
-//    yarp::os::Bottle b;
-    // yarp::os::BufferedPort<yarp::os::Bottle> port;
-
-    // port.open("/log-joint");
-    
-
     std::ofstream file;
     auto set_point = set_point1;
 
@@ -123,13 +116,13 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    // int nAxes;
-    // iEnc->getAxes(&nAxes);
-    // if ((joint_id < 0) || (joint_id >= nAxes)) {
-    //     m_driver.close();
-    //     yError() << "joint_id is not within the correct range";
-    //     return EXIT_FAILURE;
-    // }
+    int nAxes;
+    iEnc->getAxes(&nAxes);
+    if ((joint_id < 0) || (joint_id >= nAxes)) {
+        m_driver.close();
+        yError() << "joint_id is not within the correct range";
+        return EXIT_FAILURE;
+    }
 
     // double joint_min, joint_max;
     // iLim->getLimits(joint_id, &joint_min, &joint_max);
@@ -180,25 +173,6 @@ int main(int argc, char * argv[])
             iPos->positionMove(joint_id, set_point);
         }
         else if (control_mode == "pwm" ){
-            //if (set_point > 0) pwm_value = pwm_value * -1;
-            
-            // iCm->setControlMode(joint_id, VOCAB_CM_PWM);
-            // iPwm->setRefDutyCycle(joint_id, pwm_value);
-            // //check movement direction
-            // double enc1;
-            // iEnc->getEncoder(joint_id, &enc1);
-            // Time::delay(.02);
-            // double enc2;
-            // iEnc->getEncoder(joint_id, &enc2);
-            // if(set_point > 0 && enc1 > enc2 && i == 0){
-            //     pwm_value = pwm_value * -1;
-            //     iPwm->setRefDutyCycle(joint_id, pwm_value);
-            // }
-            // if(set_point < 0 && enc2 < enc1 && i == 0){
-            //     pwm_value = pwm_value * -1;
-            //     iPwm->setRefDutyCycle(joint_id, pwm_value);
-            // }                          
-
             Pid pidInfo;
             iPid->getPid(VOCAB_PIDTYPE_POSITION,joint_id,&pidInfo);
             auto pid_sign=(pidInfo.kp>=0.0?1.0:-1.0);
@@ -212,7 +186,6 @@ int main(int argc, char * argv[])
             yDebug() << pid_sign << " " << pwm_value;
         }
         
-        //auto t0 = Time::now();
         auto t1{t0};
         done = false;
         double pid_ref, enc;
@@ -231,17 +204,6 @@ int main(int argc, char * argv[])
 
             data_vec.push_back(std::move(data));
 
-            // auto& b = port.prepare();
-            // b.clear();
-
-            // b.addDouble(data.pid_ref);
-            // b.addDouble(data.enc);
-
-            // b.addDouble(data.pid_out);
-            // b.addDouble(data.curr);
-
-            // port.writeStrict();
-
             if (Time::now() - t1 >= time_delay) {
                 
                 if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
@@ -250,18 +212,14 @@ int main(int argc, char * argv[])
                     if(set_point > 0){
 
                         if(data.enc > set_point){
-                            //yDebug() << data.enc << " " << set_point << " " << pwm_value; 
-                            iPwm->setRefDutyCycle(joint_id, 0);
+                            //iPwm->setRefDutyCycle(joint_id, 0);
                             pwm_value = pwm_value * -1;
-                            //Time::delay(pause);
                             done = true; 
                             }
                     } 
                     else if(data.enc < set_point){
-                        //yDebug() << "OK" << " " << data.enc << " " << set_point << " " << pwm_value; 
-                        iPwm->setRefDutyCycle(joint_id, 0); 
+                        //iPwm->setRefDutyCycle(joint_id, 0); 
                         pwm_value = pwm_value * -1;
-                        //Time::delay(pause);
                         done = true; 
                         }
                 } 
@@ -270,8 +228,9 @@ int main(int argc, char * argv[])
             Time::delay(time_delay);
             
         }
-        yDebug() << "OK! reached :" << " " << data.enc << " set-point : " << set_point;
-        for(int k=0; k < pause * (1/time_delay); k++){
+        yDebug() << "OK! reached : " << set_point;
+        if(control_mode == "position"){
+            for(int k=0; k < pause * (1/time_delay); k++){
             data.t = Time::now() - t0;
             iPid->getPidReference(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_ref);
             iPid->getPidOutput(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_out);
@@ -285,7 +244,9 @@ int main(int argc, char * argv[])
             data_vec.push_back(std::move(data));
             Time::delay(time_delay);
 
+            }
         }
+        
   
     }
 
