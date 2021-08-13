@@ -208,8 +208,6 @@ int main(int argc, char * argv[])
 
             data_vec.push_back(std::move(data));
 
-            yDebug() << data.enc << " " << data.t << " " << timeout_check << " " << timeout;
-
             if (Time::now() - t1 >= time_delay) {
                 
                 if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
