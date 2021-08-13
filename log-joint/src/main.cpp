@@ -69,7 +69,8 @@ int main(int argc, char * argv[])
     auto control_mode = rf.check("control-mode", Value("position")).asString();
     auto pwm_value = rf.check("pwm-value", Value(80.)).asDouble();
     auto pause = rf.check("pause", Value(1.)).asDouble();
-    auto velocity = rf.check("velocity", Value(1)).asDouble();
+    auto velocity = rf.check("velocity", Value(1)).asInt();
+    auto timeout = rf.check("timeout", Value(5.)).asDouble();
 
 
 
@@ -83,13 +84,6 @@ int main(int argc, char * argv[])
     IMotorEncoders * iMotorEnc{ nullptr };
     IPWMControl* iPwm{ nullptr };
     ITorqueControl* iTrq{nullptr};
-
-    //for yarpscope
-//    yarp::os::Bottle b;
-    // yarp::os::BufferedPort<yarp::os::Bottle> port;
-
-    // port.open("/log-joint");
-    
 
     std::ofstream file;
     auto set_point = set_point1;
@@ -116,8 +110,8 @@ int main(int argc, char * argv[])
     if (!(m_driver.view(iPos) && m_driver.view(iPid) &&
           m_driver.view(iCm) && m_driver.view(iEnc) && 
           m_driver.view(iCurr) && m_driver.view(iMotorEnc) &&
-          m_driver.view(iPwm) && m_driver.view(iTrq)) &&
-          m_driver.view(iLim)) {
+          m_driver.view(iPwm) && m_driver.view(iTrq) &&
+          m_driver.view(iLim))) {
         m_driver.close();
         yError() << "Failed to view interfaces";
         return EXIT_FAILURE;
@@ -174,42 +168,35 @@ int main(int argc, char * argv[])
         iPwm->getDutyCycle(joint_id, &data.pwm_read);
         iTrq->getTorque(joint_id, &data.torque);
 
-        if(control_mode == "position"){
+        if(control_mode == "position" ){
             iCm->setControlMode(joint_id, VOCAB_CM_POSITION);
             iPos->setRefSpeed(joint_id, velocity);
             iPos->positionMove(joint_id, set_point);
         }
-        else if (control_mode == "pwm"){
-            //if (set_point > 0) pwm_value = pwm_value * -1;
-            
+        else if (control_mode == "pwm" ){
+            Pid pidInfo;
+            iPid->getPid(VOCAB_PIDTYPE_POSITION,joint_id,&pidInfo);
+            auto pid_sign=(pidInfo.kp>=0.0?1.0:-1.0);
+
+            if((pid_sign < 0 && set_point > 0) && i == 0) pwm_value = pwm_value * -1;
+            if((pid_sign > 0 && set_point < 0) && i == 0) pwm_value = pwm_value * -1;
+
             iCm->setControlMode(joint_id, VOCAB_CM_PWM);
             iPwm->setRefDutyCycle(joint_id, pwm_value);
-            //check movement direction
-            double enc1;
-            iEnc->getEncoder(joint_id, &enc1);
-            Time::delay(.02);
-            double enc2;
-            iEnc->getEncoder(joint_id, &enc2);
-            if(set_point > 0 && enc1 > enc2 && i == 0){
-                pwm_value = pwm_value * -1;
-                iPwm->setRefDutyCycle(joint_id, pwm_value);
-            }
-            if(set_point < 0 && enc2 < enc1 && i == 0){
-                pwm_value = pwm_value * -1;
-                iPwm->setRefDutyCycle(joint_id, pwm_value);
-            }                          
-            yDebug() << set_point << " " << enc1 << " " << enc2 << " " << pwm_value;
+
         }
         
-        //auto t0 = Time::now();
         auto t1{t0};
         done = false;
         double pid_ref, enc;
-       
+        double timeout_check = 0;
+        auto t2 = Time::now();
 
-        while (!done) {
+        while (!done && timeout_check < timeout) {
             data.t = Time::now() - t0;
+            timeout_check = Time::now() - t2;
             
+
             iPid->getPidReference(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_ref);
             iPid->getPidOutput(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_out);
             iEnc->getEncoder(joint_id, &data.enc);
@@ -221,43 +208,47 @@ int main(int argc, char * argv[])
 
             data_vec.push_back(std::move(data));
 
-            // auto& b = port.prepare();
-            // b.clear();
-
-            // b.addDouble(data.pid_ref);
-            // b.addDouble(data.enc);
-
-            // b.addDouble(data.pid_out);
-            // b.addDouble(data.curr);
-
-            // port.writeStrict();
-
-            if (Time::now() - t1 >= .001) {
+            if (Time::now() - t1 >= time_delay) {
+                
                 if (control_mode == "position") iPos->checkMotionDone(joint_id, &done);
                 else if(control_mode == "pwm"){
+
                     if(set_point > 0){
+
                         if(data.enc > set_point){
-                            yDebug() << data.enc << " " << set_point << " " << pwm_value; 
-                            iPwm->setRefDutyCycle(joint_id, 0);
                             pwm_value = pwm_value * -1;
-                            //Time::delay(pause);
                             done = true; 
                             }
                     } 
                     else if(data.enc < set_point){
-                        yDebug() << data.enc << " " << set_point << " " << pwm_value; 
-                        iPwm->setRefDutyCycle(joint_id, 0); 
                         pwm_value = pwm_value * -1;
-                        //Time::delay(pause);
                         done = true; 
                         }
                 } 
                 t1 = Time::now();
             }
-           // Time::delay(time_delay);
-   
+            Time::delay(time_delay);
+            
         }
-        Time::delay(pause);
+        if(timeout_check >= timeout) yDebug() << "timeout while reaching : " << set_point;
+        else yDebug() << "OK! reached : " << set_point;
+        if(control_mode == "position"){
+            for(int k=0; k < pause * (1/time_delay); k++){
+            data.t = Time::now() - t0;
+            iPid->getPidReference(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_ref);
+            iPid->getPidOutput(VOCAB_PIDTYPE_POSITION, joint_id, &data.pid_out);
+            iEnc->getEncoder(joint_id, &data.enc);
+            iCurr->getCurrent(joint_id, &data.curr);
+            iMotorEnc->getMotorEncoder(joint_id, &data.motor_enc);
+            iPwm->getDutyCycle(joint_id, &data.pwm_read);
+            iTrq->getTorque(joint_id, &data.torque);
+
+
+            data_vec.push_back(std::move(data));
+            Time::delay(time_delay);
+
+            }
+        }
         
   
     }
