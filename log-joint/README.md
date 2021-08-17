@@ -39,7 +39,7 @@ This example moves the joint 3 of the head (eyes tilt) in PWM mode (setting the 
 ```console
 cd src/build
 
-./log-joint --robot-part head --joint-id 3 --set-point1 -20 --set-point2 20 --cycles 5 --control-mode pwm --pwm-value 70 --pause 1 --log-file mylog.log
+./log-joint --robot-part head --joint-id 3 --set-point1 -20 --set-point2 20 --cycles 5 --control-mode pwm --pwm-value 70 --log-file mylog.log
 ```
 
 ## Matlab script
