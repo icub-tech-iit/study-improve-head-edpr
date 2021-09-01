@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
     auto time_delay = rf.check("time-delay", Value(.01)).asDouble();
     auto control_mode = rf.check("control-mode", Value("position")).asString();
     auto pwm_value = rf.check("pwm-value", Value(80.)).asDouble();
-    auto pause = rf.check("pause", Value(1.)).asDouble();
+    auto pause = rf.check("pause", Value(.001)).asDouble();
     auto velocity = rf.check("velocity", Value(1)).asInt();
     auto timeout = rf.check("timeout", Value(5.)).asDouble();
 
