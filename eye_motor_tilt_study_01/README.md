@@ -6,3 +6,4 @@ To correctly manage the large files stored within this repository, follow the [i
 [1]: https://help.github.com/en/articles/installing-git-large-file-storage
 
 Adding neuromorphic eye tilt system mounted on iCub head MKII, assembled with a Creo mechanism system to export it in SimScape.
+"icub3_020_g_300.asm" is the main assembly to open.
