@@ -17,8 +17,7 @@ All to be organized.
 
 ## Motor
 - Model 1524SR12
-- Motor dumping formula  
-  ![alt text](img/formula.png)
+- Motor damping formula: $k_t \cdot i_{\text{noload}} = \lambda \cdot \omega_{\text{noload}}$
 
 ## Gearbox
 - Aproximate and add inertia component (cilinder)
