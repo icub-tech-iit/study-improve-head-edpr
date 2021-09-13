@@ -8,8 +8,6 @@
 
 %%%VariableName:smiData
 
-Ts = 0.01;
-
 %============= RigidTransform =============%
 
 %Initialize the RigidTransform structure array by filling in null values.
