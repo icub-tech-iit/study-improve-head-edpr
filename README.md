@@ -5,4 +5,4 @@ The following `sim` branch contains the MATLAB and Simulink material used to sim
 
 ## 👨🏻‍💻 Studies
 
-### 🎥 [Eyes Tilting Mechanism](./eyes-tilt-motor-sizing)
+### 👀 [Eyes Tilting Mechanism](./eyes-tilt-motor-sizing)
