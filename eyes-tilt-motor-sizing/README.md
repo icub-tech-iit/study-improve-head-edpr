@@ -1,11 +1,20 @@
 Study of the eyes tilting mechanism
 ===================================
+This model describes the eyes mechanism that is present on a particular iCub head by EDPR. The mechanism seems not to be able to move correctly the eyes following a reference curve. For this reason, we decide to model all the parts and check for problems.
 
 # 1. Prerequisites
-TODO
+
+- Matlab/Simulink/Simscape 2021a with toolboxes
+- git
+
+Clone the repository:
+```bash
+git clone https://github.com/icub-tech-iit/study-improve-head-edpr.git
+```
 
 # 2. Used tools
-TODO
+We developed the model using Simulink, Simscape and Creo CAD.  
+Open the model project named **Eyestiltmotorsizing.prj** in folder study-improve-head-edpr.
 
 # 3. Model
 
@@ -24,14 +33,23 @@ The complete model is divided into the following parts:
 
 ## 3.2. Mechanics
 
-The mechanics part of the model is generated directly from the Creo CAD.
+The mechanics part of the model is generated directly from the Creo CAD;
+and then we imported it into SimScape. 
+Execute Matlab and then:
+```matlab
+cd study-improve-head-edpr\eyes-tilt-motor-sizing
+smimport('models/resources_simscape/ICUB3_020_G_300.xml');
+```
+See also the official [import procedure](https://it.mathworks.com/help/physmod/sm/ug/import-a-cad-assembly-model.html#:~:text=You%20import%20a%20CAD%20model,body%20geometries%20for%20visualization%20purposes).
 
 <img src="assets/mech001.png" alt="drawing" width="900"/>
 
-Some minor fix should be done after the Creo generation:
+Some minor fixes should be done after the Creo generation:
 - Remove SixDof
 - Check gravity direction
-- Add the out position, velocity port and add the in torque port  <br><br>
+- Add the out position, velocity port and add the in torque port  
+
+<br><br>
 <img src="assets/mech003.png" alt="drawing" width="300"/>   <br><br>
 <img src="assets/mech004.png" alt="drawing" width="300"/>    
 - Manage the position offset  
@@ -45,12 +63,12 @@ The control block is shown in the following figure:
 
 It is a discrete PI.  
 Configured parameters:
-|Name|Value|Uom|
-|-|-|-|
-|Proportional|10||
-|Integral|10||
+|Name|Value|
+|-|-|
+|Proportional|10|
+|Integral|10|
 
-Limit output parameters between +-100:  
+Limit output between +-100:  
 <br>
 <img src="assets/pid002.png" alt="drawing" width="600"/> 
 
@@ -62,7 +80,7 @@ The motor block is shown in the following figure:
 
 <img src="assets/motor001.png" alt="drawing" width="900"/>  
 
-The gearbox inertia is calculated approximating it to a cylinder with the same rage and length.  
+The gearbox inertia is calculated approximating it to a cylinder with the same range and length.  
 The motor damping formula is:  
 $k_t \cdot i_{\text{noload}} = \lambda \cdot \omega_{\text{noload}}$
 
@@ -90,17 +108,21 @@ Gearbox specifications used:
 
 ## 3.5. Reference
 
-For reference, a polynomial curve is used.  
+For reference, we used a polynomial curve.  
 <img src="assets/ref001.png" alt="drawing" width="500"/>  
 
 **Reference curve:**
 
 <img src="assets/ref002.png" alt="drawing" width="800"/>  
 
+## 3.6. Model without motor
+It is also available a model without the motor:
+<img src="assets/all-no-motor.png" alt="drawing" width="800"/>  
+
 
 # 2. Running the model
 
-Running the model with the given reference curve.
+Running the model(complete with the motor) with the given reference curve.
 
 **Position-Reference in degree against time**:
 
@@ -108,7 +130,7 @@ Running the model with the given reference curve.
 
 The motor follows the reference.
 
-**Torque against time:**
+**Torque N*m against time:**
 
 <img src="assets/torque-before-gear.png" alt="drawing" width="800"/>  
 
@@ -118,17 +140,17 @@ The max torque requested by the motor is around 0.00040 Nm
 
 <img src="assets/in-voltage.png" alt="drawing" width="800"/> 
 
-the voltage remains within the limits.
+the voltage remains within the limits +-12volt.
 
 For completness **Position-reference-pid_out**:
 
 <img src="assets/tilt-ref-pid.png" alt="drawing" width="800"/>  
 
-Video:
-
-<video src='ICUB3_020_G_300_002.avi' width=300/>
-
 # 3. Conclusion
 
-The phisical system described by the model is able to follow the given trajectory because the maximum torque value required is well within its specifications.
+The physical system described by the model can follow the given trajectory because the maximum torque value required is well within its specifications.
 Maximum requested torque 0.40 mN*m and for motor specification maximum deliverable torque.
+
+Video:
+
+<video src='ICUB3_020_G_300_002.avi' width=300>
