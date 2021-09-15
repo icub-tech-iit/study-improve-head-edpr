@@ -85,31 +85,6 @@ $\lambda=\frac{k_t \cdot i_{\text{noload}}}{\omega_{\text{noload}}}$
 where $k_t$ is the torque constant, $i_{noload}$ is the no load current, $\omega_{noload}$ is the no load speed, and $\lambda$ is the desired damping. 
 
 
-Motor specifications used:
-|Name|Value|Uom|
-|-|-|-|
-|Nominal voltage|12|v|
-|Armature resistance|19.8|Ohm|
-|Armature inductance|250|uH|
-|Torque constant|11.4|mN*m/A|
-|Armature resistance|19.8|Ohm|
-|Rotor inertia|0.65|g*cm^2|
-|Rotor dumping|1.266e-5|m*mN/rpm|
-|Armature resistance|19.8|Ohm|
-|No load speed|9900|rpm|
-|No load current|0.011|A|
-
-Gearbox specifications used:
-|Name|Value|Uom|
-|-|-|-|
-|Gearbox ratio|141:1||
-|Inertia|7.68|g*cm^2|
-|Breakaway friction torque|0.13|mN*m|
-|Breakaway friction velocity|0.01|rad/s|
-|Coulomb friction torque|0.13|mN*m|
-|Cylinder range|8|mm|
-|Cylinder lenght|32|mm|
-|Mass|24|g|
 
 ## 3.5. Reference
 
