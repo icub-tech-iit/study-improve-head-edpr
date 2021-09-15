@@ -1,6 +1,6 @@
 Study of the eyes tilting mechanism
 ===================================
-This model describes the eyes mechanism that is present on a particular iCub head by EDPR. The mechanism seems not to be able to move correctly the eyes following the reference curve. For this reason, we decide to model all the parts and check for problems.
+This model describes the eyes mechanism that is present on a particular iCub head by EDPR. The mechanism seems not to be able to move correctly the eyes following the reference curve. For this reason, we decided to model all the parts and check for problems.
 
 # 1. Prerequisites
 
