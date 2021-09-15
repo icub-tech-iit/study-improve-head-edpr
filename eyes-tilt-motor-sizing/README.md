@@ -66,11 +66,6 @@ The control block is shown in the following figure:
 <img src="assets/pid001.png" alt="drawing" width="600"/>  
 
 It is a discrete PI.  
-Configured parameters:
-|Name|Value|
-|-|-|
-|Proportional|10|
-|Integral|10|
 
 Limit output between [-100,+100]:  
 <br>
