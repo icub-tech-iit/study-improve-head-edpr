@@ -1,6 +1,6 @@
 Study of the eyes tilting mechanism
 ===================================
-This model describes the eyes mechanism that is present on a particular iCub head by EDPR. The mechanism seems not to be able to move correctly the eyes following a reference curve. For this reason, we decide to model all the parts and check for problems.
+This model describes the eyes mechanism that is present on a particular iCub head by EDPR. The mechanism seems not to be able to move correctly the eyes following the reference curve. For this reason, we decide to model all the parts and check for problems.
 
 # 1. Prerequisites
 
@@ -35,7 +35,7 @@ The complete model is divided into the following parts:
 
 The mechanics part of the model is generated directly from the Creo CAD;
 and then we imported it into SimScape. 
-Execute Matlab and then:
+To generate it, execute Matlab and then on the command window:
 ```matlab
 cd study-improve-head-edpr\eyes-tilt-motor-sizing
 smimport('models/resources_simscape/ICUB3_020_G_300.xml');
@@ -50,10 +50,12 @@ Some minor fixes should be done after the Creo generation:
 - Add the out position, velocity port and add the in torque port  
 
 <br><br>
-<img src="assets/mech003.png" alt="drawing" width="300"/>   <br><br>
+<img src="assets/mech003.png" alt="drawing" width="300"/>  
+<br><br>
 <img src="assets/mech004.png" alt="drawing" width="300"/>    
 - Manage the position offset  
   <img src="assets/mech002.png" alt="drawing" width="500"/>
+- Add the out ports to the model (Tilt, Vel) and the in port (Torque).
 
 ## 3.3. Control
 
@@ -75,14 +77,15 @@ Limit output between +-100:
 
 
 ## 3.4. Motor
-The motor used is the Model 1524SR12 Faulhaber, the gearbox is the model series 15/8 144:1 Faulhaber.   
+The motor used is the Model 1524SR12 Faulhaber, the gearbox is the model series 15/8 141:1 Faulhaber.  
 The motor block is shown in the following figure:  
 
 <img src="assets/motor001.png" alt="drawing" width="900"/>  
 
-The gearbox inertia is calculated approximating it to a cylinder with the same range and length.  
+The gearbox inertia is calculated approximating it to a cylinder with the same range and length $I=\frac{mr^{2}}{2}$.  
 The motor damping formula is:  
-$k_t \cdot i_{\text{noload}} = \lambda \cdot \omega_{\text{noload}}$
+$\lambda=\frac{k_t \cdot i_{\text{noload}}}{\omega_{\text{noload}}}$
+where $k_t$ is the torque constant, $i_{noload}$ is the no load current, $\omega_{noload}$ is the no load speed, and $\lambda$ is the desired damping. 
 
 
 Motor specifications used:
@@ -96,15 +99,20 @@ Motor specifications used:
 |Rotor inertia|0.65|g*cm^2|
 |Rotor dumping|1.266e-5|m*mN/rpm|
 |Armature resistance|19.8|Ohm|
+|No load speed|9900|rpm|
+|No load current|0.011|A|
 
 Gearbox specifications used:
 |Name|Value|Uom|
 |-|-|-|
-|Gearbox ratio|144:1||
+|Gearbox ratio|141:1||
 |Inertia|7.68|g*cm^2|
 |Breakaway friction torque|0.13|mN*m|
 |Breakaway friction velocity|0.01|rad/s|
 |Coulomb friction torque|0.13|mN*m|
+|Cylinder range|8|mm|
+|Cylinder lenght|32|mm|
+|Mass|24|g|
 
 ## 3.5. Reference
 
@@ -140,10 +148,9 @@ The max torque requested by the motor is around 0.00040 Nm
 
 <img src="assets/in-voltage.png" alt="drawing" width="800"/> 
 
-the voltage remains within the limits +-12volt.
+The voltage remains within the limits +-12volt.
 
-For completness **Position-reference-pid_out**:
-
+For completness **Position-reference-pid_out** against time: 
 <img src="assets/tilt-ref-pid.png" alt="drawing" width="800"/>  
 
 # 3. Conclusion
@@ -151,6 +158,4 @@ For completness **Position-reference-pid_out**:
 The physical system described by the model can follow the given trajectory because the maximum torque value required is well within its specifications.
 Maximum requested torque 0.40 mN*m and for motor specification maximum deliverable torque.
 
-Video:
-
-<video src='ICUB3_020_G_300_002.avi' width=300>
+<img src="assets/video001.gif" alt="drawing" width="800"/>  
