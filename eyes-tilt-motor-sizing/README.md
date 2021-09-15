@@ -54,7 +54,9 @@ Some minor fixes should be done after the Creo generation:
 <br><br>
 <img src="assets/mech004.png" alt="drawing" width="300"/>    
 - Manage the position offset  
-  <img src="assets/mech002.png" alt="drawing" width="500"/>
+  
+<img src="assets/mech002.png" alt="drawing" width="500"/>  
+
 - Add the out ports to the model (Tilt, Vel) and the in port (Torque).
 
 ## 3.3. Control
@@ -70,7 +72,7 @@ Configured parameters:
 |Proportional|10|
 |Integral|10|
 
-Limit output between +-100:  
+Limit output between [-100,+100]:  
 <br>
 <img src="assets/pid002.png" alt="drawing" width="600"/> 
 
@@ -116,7 +118,7 @@ Gearbox specifications used:
 
 ## 3.5. Reference
 
-For reference, we used a polynomial curve.  
+For reference, we used a polynomial curve between [-20, +20] degrees.  
 <img src="assets/ref001.png" alt="drawing" width="500"/>  
 
 **Reference curve:**
